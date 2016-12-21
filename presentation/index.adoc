@@ -185,3 +185,6 @@ frontend-service:
 ....
 
 == Questions?
+
+Slides and code can be found here: https://github.com/lenalebt/docker-compose-meetup
+image::code.png[width="300"]

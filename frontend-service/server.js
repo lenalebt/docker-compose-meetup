@@ -15,15 +15,15 @@ const proxyConfig = [
   {
     localPath: '/api/customer',
     remotePath: '/customer',
-    host: liveMode ? 'http://customer-service' : 'http://localhost:3010'
+    host: liveMode ? 'http://customer-service:3000' : 'http://localhost:3010'
   }, {
     localPath: '/api/present',
     remotePath: '/present',
-    host: liveMode ? 'http://present-service' : 'http://localhost:3020'
+    host: liveMode ? 'http://present-service:3000' : 'http://localhost:3020'
   }, {
     localPath: '/api/parcels',
     remotePath: '/parcels',
-    host: liveMode ? 'http://parcel-service' : 'http://localhost:3030'
+    host: liveMode ? 'http://parcel-service:9000' : 'http://localhost:3030'
   }
 ];
 // Configure the proxy
