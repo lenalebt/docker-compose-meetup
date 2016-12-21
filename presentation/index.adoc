@@ -1,0 +1,187 @@
+= Docker-compose for local testing of our cloud infrastructure
+:imagesdir: images/
+:revealjs_theme: white
+:customcss: zalando.css
+:revealjs_history: true
+
+Hendrik Mittrop & Lena Brüder
+
+== Topics today
+* What is docker-compose?
+* Example services: Santa is on the way!
+* Dockerizing the services
+* Docker-compose: Simple version
+* Docker-compose: Enhanced version with routing
+
+=== What is docker-compose?
+
+[%step]
+* multi-container docker applications
+* defined through YAML files
+
+[state=introduction]
+=== !
+
+....
+version: '2'
+services:
+  web:
+    build: .
+    ports:
+    - "5000:5000"
+    volumes:
+    - .:/code
+    - logvolume01:/var/log
+    links:
+    - postgres
+  postgres:
+    image: postgres:latest
+    expose:
+    - "5432"
+volumes:
+  logvolume01: {}
+....
+
+[graphviz, generated/docker-compose-example, svg]
+....
+digraph {
+    web -> postgres [label="postgres:5432"]
+    localhost -> web [label="web:5000"]
+    localhost -> postgres [label="postgres:5432"]
+    code [shape=hexagon, label="."]
+    volume [shape=hexagon, label="logvolume01"]
+    localhost -> code [label="./"]
+    web -> code [label="/code"]
+    web -> volume [label="/var/log"]
+    //postgres -> volume
+    localhost -> volume [style=dotted]
+}
+....
+
+== Example services: Santa is on the way!
+
+[graphviz, generated/santa-on-the-way, svg]
+....
+digraph {
+    controller [label="frontend-service (node.js)"]
+    customer [label="customer-service (node.js)"]
+    present [label="present-service (node.js)"]
+    parcel [label="parcel-service (Scala)"]
+    controller -> customer
+    controller -> present
+    controller -> parcel
+}
+....
+
+* pass:[<img src="images/nodejs.png" width="200em" style="vertical-align: middle;"> and <img src="images/scala.png" width="200em" style="vertical-align: middle;"> backend services]
+
+=== Present-service: Generate presents!
+
+image::present-service-startup.png[]
+
+=== !
+
+image::present-service-run.png[]
+
+=== Customer-service: Generate customers!
+
+image::customer-service-startup.png[]
+
+=== !
+
+image::customer-service-run.png[]
+
+=== Parcel-service: Store parcels and deliver them!
+
+image::parcel-service-startup.png[]
+
+=== !
+
+image::parcel-service-run1.png[]
+
+=== !
+
+....
+include::../parcel-service/example.json[]
+....
+
+=== !
+
+image::parcel-service-run2.png[]
+
+=== Frontend-service: Controller for all the things
+
+image::frontend-service-run.png[]
+
+== Dockerizing the services
+
+=== Present-service
+
+....
+include::../present-service/Dockerfile[]
+....
+
+=== Customer-service
+
+....
+include::../customer-service/Dockerfile[]
+....
+
+=== Frontend-service
+
+....
+include::../frontend-service/Dockerfile[]
+....
+
+=== Parcel-service
+
+Using sbt-native-packager:
+....
+include::../parcel-service/docker.sbt[]
+....
+
+== Docker-compose: Simple version
+
+link:docker-compose/simple/docker-compose.yml[show in editor]
+....
+include::docker-compose/simple/docker-compose.yml[]
+....
+
+=== Demo
+
+
+== Docker-compose: Enhanced version with routing
+
+link:docker-compose/complex/docker-compose.yml[show in editor]
+....
+include::docker-compose/complex/docker-compose.yml[]
+....
+
+=== Demo
+
+
+== SSL Termination with Nginx proxy
+
+....
+frontend-service:
+    image: frontend-service:latest
+    environment:
+      VIRTUAL_HOST: frontend-service
+      CERT_NAME: server
+      VIRTUAL_PORT: 9443
+      VIRTUAL_PROTO: https
+      KEYSTORE_PASSWORD: suchsecret
+      KEYSTORE_PATH: /opt/docker/conf/manysecrets.keystore
+      HTTPS_PORT: 8443
+    volumes:
+      - ./cacerts:/etc/ssl/certs/java/cacerts:ro
+    expose:
+      - "8443"
+    depends_on:
+      - parcel-service
+      - proxy
+    links:
+      - proxy:parcel-service
+....
+
+== Questions?

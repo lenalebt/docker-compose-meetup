@@ -1,0 +1,26 @@
+{
+  "recipient": {
+    "address": {
+      "street": "Entenhausener Straße",
+      "house_number": "313",
+      "city": "Entenhausen",
+      "zip_code": "12345"
+    },
+    "last_name": "Duck",
+    "first_name": "Donald"
+  },
+  "sender": {
+    "address": {
+      "street": "Geldspeicherstraße 12",
+      "house_number": "543",
+      "city": "Entenhausen",
+      "zip_code": "12346"
+    },
+    "last_name": "Daisy",
+    "first_name": "Duck"
+  },
+  "content": {
+    "type": "text",
+    "content": "a whining dicey ravioli"
+  }
+}

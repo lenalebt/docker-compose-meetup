@@ -1,0 +1,12 @@
+swagger: '2.0'
+info:
+  title: Example Swagger File
+  description: Exchange this file with your swagger file for your Project
+  version: 1.0.0
+host: example.com
+schemes:
+  - https
+produces:
+  - application/json
+
+# TODO exchange this file with your api documentation

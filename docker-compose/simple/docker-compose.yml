@@ -1,0 +1,33 @@
+version: '2'
+services:
+
+  parcel-service:
+    image: parcel-service:1.0-SNAPSHOT
+    environment:
+      APP_ENVIRONMENT: integration
+    expose:
+      - "9000"
+  present-service:
+    image: present-service:latest
+    environment:
+      APP_ENVIRONMENT: integration
+    expose:
+      - "3000"
+  customer-service:
+    image: customer-service:latest
+    environment:
+      APP_ENVIRONMENT: integration
+    expose:
+      - "3000"
+  controller:
+    image: frontend-service:latest
+    environment:
+      APP_ENVIRONMENT: integration
+    expose:
+      - "8080"
+    depends_on:
+    - parcel-service
+    - present-service
+    - customer-service
+    ports:
+    - 8080:8080

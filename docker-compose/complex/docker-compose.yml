@@ -1,0 +1,67 @@
+version: '2'
+services:
+
+  parcel-service:
+    image: parcel-service:1.0-SNAPSHOT
+    environment:
+      APP_ENVIRONMENT: integration
+      VIRTUAL_HOST: parcel-service
+      VIRTUAL_PORT: 9000
+    depends_on:
+      - proxy
+    expose:
+      - "9000"
+
+
+  present-service:
+    image: present-service:latest
+    environment:
+      VIRTUAL_HOST: present-service
+      VIRTUAL_PORT: 3000
+    depends_on:
+      - proxy
+    expose:
+      - "3000"
+
+
+  customer-service:
+    image: customer-service:latest
+    environment:
+      VIRTUAL_HOST: customer-service
+      VIRTUAL_PORT: 3000
+    depends_on:
+      - proxy
+    expose:
+      - "3000"
+
+
+  frontend-service:
+    image: frontend-service:latest
+    environment:
+      VIRTUAL_HOST: frontend-service
+      VIRTUAL_PORT: 8080
+    expose:
+      - "8080"
+    depends_on:
+      - parcel-service
+      - present-service
+      - customer-service
+      - proxy
+    links:
+      - proxy:parcel-service
+      - proxy:present-service
+      - proxy:customer-service
+    ports:
+      - 8080:8080
+
+
+  proxy:
+    image: jwilder/nginx-proxy
+    environment:
+      DEFAULT_HOST: frontend-service
+    expose:
+      - "80"
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
