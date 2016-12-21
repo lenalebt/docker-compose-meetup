@@ -1,0 +1,47 @@
+.reveal .slide-background {
+    background: url("images/zalando.png"), url("images/zalando-dresscode.png"), rgba(255,0,0,0);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: 85% 90%, 95% 95%, 30% 0%;
+    background-size: 10%, 10%, 10%;
+}
+
+.reveal .controls .navigate-left, .reveal .controls .navigate-left.enabled {
+    border-right-color: #ff6f0b;
+}
+.reveal .controls .navigate-right, .reveal .controls .navigate-right.enabled {
+    border-left-color: #ff6f0b;
+}
+.reveal .controls .navigate-up, .reveal .controls .navigate-up.enabled {
+    border-bottom-color: #ff6f0b;
+}
+.reveal .controls .navigate-down, .reveal .controls .navigate-down.enabled {
+    border-top-color: #ff6f0b;
+}
+
+.reveal section img {
+  background:none; 
+  border:none; 
+  box-shadow:none;
+  }
+
+
+section[data-state="introduction"] div.literalblock {
+    width: 49%;
+    display: inline-block;
+}
+section[data-state="introduction"] div.imageblock {
+    width: 49%;
+    display: inline-block;
+}
+
+.reveal .slide-background::before {
+    position: fixed;
+    background-color: #ff6f0b;
+    height: 1%;
+    top: 0;
+    left: 33%;
+    right: 33%;
+    display: block;
+    content: " ";
+}

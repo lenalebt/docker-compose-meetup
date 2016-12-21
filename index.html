@@ -1,0 +1,303 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Docker-compose for local testing of our cloud infrastructure</title><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" name="viewport"><link href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/css/reveal.css" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/css/theme/white.css" id="theme"><link href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/css/zenburn.css" rel="stylesheet"><script>document.write( '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );</script><link rel="stylesheet" href="zalando.css"></head><body><div class="reveal"><div class="slides"><section class="title"><h1>Docker-compose for local testing of our cloud infrastructure</h1><div class="preamble"><div class="paragraph"><p>Hendrik Mittrop &amp; Lena Brüder</p></div></div></section>
+<section><section id="_topics_today"><h2>Topics today</h2><div class="ulist"><ul><li><p>What is docker-compose?</p></li><li><p>Example services: Santa is on the way!</p></li><li><p>Dockerizing the services</p></li><li><p>Docker-compose: Simple version</p></li><li><p>Docker-compose: Enhanced version with routing</p></li></ul></div></section><section id="_what_is_docker_compose"><h2>What is docker-compose?</h2><div class="ulist"><ul><li class="fragment"><p>multi-container docker applications</p></li><li class="fragment"><p>defined through YAML files</p></li></ul></div></section><section data-state="introduction"><div class="literalblock"><div class="content"><pre>version: '2'
+services:
+  web:
+    build: .
+    ports:
+    - "5000:5000"
+    volumes:
+    - .:/code
+    - logvolume01:/var/log
+    links:
+    - postgres
+  postgres:
+    image: postgres:latest
+    expose:
+    - "5432"
+volumes:
+  logvolume01: {}</pre></div></div>
+<div class="imageblock" style=""><img src="images/generated/docker-compose-example.svg" alt="docker compose example"></div></section></section>
+<section><section id="_example_services_santa_is_on_the_way"><h2>Example services: Santa is on the way!</h2><div class="imageblock" style=""><img src="images/generated/santa-on-the-way.svg" alt="santa on the way"></div><div class="ulist"><ul><li><p><img src="images/nodejs.png" width="200em" style="vertical-align: middle;"> and <img src="images/scala.png" width="200em" style="vertical-align: middle;"> backend services</p></li></ul></div></section><section id="_present_service_generate_presents"><h2>Present-service: Generate presents!</h2><div class="imageblock" style=""><img src="images/present-service-startup.png" alt="present service startup"></div></section><section><div class="imageblock" style=""><img src="images/present-service-run.png" alt="present service run"></div></section><section id="_customer_service_generate_customers"><h2>Customer-service: Generate customers!</h2><div class="imageblock" style=""><img src="images/customer-service-startup.png" alt="customer service startup"></div></section><section><div class="imageblock" style=""><img src="images/customer-service-run.png" alt="customer service run"></div></section><section id="_parcel_service_store_parcels_and_deliver_them"><h2>Parcel-service: Store parcels and deliver them!</h2><div class="imageblock" style=""><img src="images/parcel-service-startup.png" alt="parcel service startup"></div></section><section><div class="imageblock" style=""><img src="images/parcel-service-run1.png" alt="parcel service run1"></div></section><section><div class="literalblock"><div class="content"><pre>{
+  "recipient": {
+    "address": {
+      "street": "Entenhausener Straße",
+      "house_number": "313",
+      "city": "Entenhausen",
+      "zip_code": "12345"
+    },
+    "last_name": "Duck",
+    "first_name": "Donald"
+  },
+  "sender": {
+    "address": {
+      "street": "Geldspeicherstraße 12",
+      "house_number": "543",
+      "city": "Entenhausen",
+      "zip_code": "12346"
+    },
+    "last_name": "Daisy",
+    "first_name": "Duck"
+  },
+  "content": {
+    "type": "text",
+    "content": "a whining dicey ravioli"
+  }
+}</pre></div></div></section><section><div class="imageblock" style=""><img src="images/parcel-service-run2.png" alt="parcel service run2"></div></section><section id="_frontend_service_controller_for_all_the_things"><h2>Frontend-service: Controller for all the things</h2><div class="imageblock" style=""><img src="images/frontend-service-run.png" alt="frontend service run"></div></section></section>
+<section><section id="_dockerizing_the_services"><h2>Dockerizing the services</h2></section><section id="_present_service"><h2>Present-service</h2><div class="literalblock"><div class="content"><pre>FROM node:latest
+
+# Create app directory
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+# Install app dependencies
+COPY package.json /usr/src/app/
+RUN npm install --only=production
+
+# Bundle app source
+COPY . /usr/src/app
+
+EXPOSE 3000
+CMD [ "npm", "start" ]</pre></div></div></section><section id="_customer_service"><h2>Customer-service</h2><div class="literalblock"><div class="content"><pre>FROM node:latest
+
+# Create app directory
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+# Install app dependencies
+COPY package.json /usr/src/app/
+RUN npm install --only=production
+
+# Bundle app source
+COPY . /usr/src/app
+
+EXPOSE 3000
+CMD [ "npm", "start" ]</pre></div></div></section><section id="_frontend_service"><h2>Frontend-service</h2><div class="literalblock"><div class="content"><pre>FROM node:latest
+
+# Create app directory
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+# Install app dependencies
+COPY package.json /usr/src/app/
+RUN npm install
+
+# Bundle app source
+COPY . /usr/src/app
+
+ENV app_mode prod
+
+EXPOSE 8080
+CMD [ "npm", "run", "start-prod" ]</pre></div></div></section><section id="_parcel_service"><h2>Parcel-service</h2><div class="paragraph"><p>Using sbt-native-packager:</p></div>
+<div class="literalblock"><div class="content"><pre>import com.typesafe.sbt.packager.docker.Cmd
+
+// exposing the play ports
+dockerExposedPorts in Docker := Seq(9000, 9443)
+
+dockerBaseImage := "java:latest"
+
+dockerExposedVolumes in Docker := Seq("/opt/docker/logs")
+
+defaultLinuxInstallLocation in Docker := "/opt/docker"
+
+// fix "no Permission in /opt/docker/PID"-error
+javaOptions in Universal ++= Seq(
+  "-Dpidfile.path=/tmp/play.pid"
+)</pre></div></div></section></section>
+<section><section id="_docker_compose_simple_version"><h2>Docker-compose: Simple version</h2><div class="paragraph"><p><a href="docker-compose/simple/docker-compose.yml">show in editor</a></p></div><div class="literalblock"><div class="content"><pre>version: '2'
+services:
+
+  parcel-service:
+    image: parcel-service:1.0-SNAPSHOT
+    environment:
+      APP_ENVIRONMENT: integration
+    expose:
+      - "9000"
+  present-service:
+    image: present-service:latest
+    environment:
+      APP_ENVIRONMENT: integration
+    expose:
+      - "3000"
+  customer-service:
+    image: customer-service:latest
+    environment:
+      APP_ENVIRONMENT: integration
+    expose:
+      - "3000"
+  controller:
+    image: frontend-service:latest
+    environment:
+      APP_ENVIRONMENT: integration
+    expose:
+      - "8080"
+    depends_on:
+    - parcel-service
+    - present-service
+    - customer-service
+    ports:
+    - 8080:8080</pre></div></div></section><section id="_demo"><h2>Demo</h2></section></section>
+<section><section id="_docker_compose_enhanced_version_with_routing"><h2>Docker-compose: Enhanced version with routing</h2><div class="paragraph"><p><a href="docker-compose/complex/docker-compose.yml">show in editor</a></p></div><div class="literalblock"><div class="content"><pre>version: '2'
+services:
+
+  parcel-service:
+    image: parcel-service:1.0-SNAPSHOT
+    environment:
+      APP_ENVIRONMENT: integration
+      VIRTUAL_HOST: parcel-service
+      VIRTUAL_PORT: 9000
+    depends_on:
+      - proxy
+    expose:
+      - "9000"
+
+
+  present-service:
+    image: present-service:latest
+    environment:
+      VIRTUAL_HOST: present-service
+      VIRTUAL_PORT: 3000
+    depends_on:
+      - proxy
+    expose:
+      - "3000"
+
+
+  customer-service:
+    image: customer-service:latest
+    environment:
+      VIRTUAL_HOST: customer-service
+      VIRTUAL_PORT: 3000
+    depends_on:
+      - proxy
+    expose:
+      - "3000"
+
+
+  frontend-service:
+    image: frontend-service:latest
+    environment:
+      VIRTUAL_HOST: frontend-service
+      VIRTUAL_PORT: 8080
+    expose:
+      - "8080"
+    depends_on:
+      - parcel-service
+      - present-service
+      - customer-service
+      - proxy
+    links:
+      - proxy:parcel-service
+      - proxy:present-service
+      - proxy:customer-service
+    ports:
+      - 8080:8080
+
+
+  proxy:
+    image: jwilder/nginx-proxy
+    environment:
+      DEFAULT_HOST: frontend-service
+    expose:
+      - "80"
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro</pre></div></div></section><section id="_demo_2"><h2>Demo</h2></section></section>
+<section id="_ssl_termination_with_nginx_proxy"><h2>SSL Termination with Nginx proxy</h2><div class="literalblock"><div class="content"><pre>frontend-service:
+    image: frontend-service:latest
+    environment:
+      VIRTUAL_HOST: frontend-service
+      CERT_NAME: server
+      VIRTUAL_PORT: 9443
+      VIRTUAL_PROTO: https
+      KEYSTORE_PASSWORD: suchsecret
+      KEYSTORE_PATH: /opt/docker/conf/manysecrets.keystore
+      HTTPS_PORT: 8443
+    volumes:
+      - ./cacerts:/etc/ssl/certs/java/cacerts:ro
+    expose:
+      - "8443"
+    depends_on:
+      - parcel-service
+      - proxy
+    links:
+      - proxy:parcel-service</pre></div></div></section>
+<section id="_questions"><h2>Questions?</h2><div class="paragraph"><p>Slides and code can be found here: <a href="https://github.com/lenalebt/docker-compose-meetup" class="bare">https://github.com/lenalebt/docker-compose-meetup</a>
+image::code.png[width="300"]</p></div></section></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/js/head.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/js/reveal.js"></script><script>// See https://github.com/hakimel/reveal.js#configuration for a full list of configuration options
+Reveal.initialize({
+  // Display controls in the bottom right corner
+  controls: true,
+  // Display a presentation progress bar
+  progress: true,
+  // Display the page number of the current slide
+  slideNumber: false,
+  // Push each slide change to the browser history
+  history: true,
+  // Enable keyboard shortcuts for navigation
+  keyboard: true,
+  // Enable the slide overview mode
+  overview: true,
+  // Vertical centering of slides
+  center: true,
+  // Enables touch navigation on devices with touch input
+  touch: true,
+  // Loop the presentation
+  loop: false,
+  // Change the presentation direction to be RTL
+  rtl: false,
+  // Turns fragments on and off globally
+  fragments: true,
+  // Flags if the presentation is running in an embedded mode,
+  // i.e. contained within a limited portion of the screen
+  embedded: false,
+  // Number of milliseconds between automatically proceeding to the
+  // next slide, disabled when set to 0, this value can be overwritten
+  // by using a data-autoslide attribute on your slides
+  autoSlide: 0,
+  // Stop auto-sliding after user input
+  autoSlideStoppable: true,
+  // Enable slide navigation via mouse wheel
+  mouseWheel: false,
+  // Hides the address bar on mobile devices
+  hideAddressBar: true,
+  // Opens links in an iframe preview overlay
+  previewLinks: false,
+  // Theme (e.g., beige, black, league, night, serif, simple, sky, solarized, white)
+  // NOTE setting the theme in the config no longer works in reveal.js 3.x
+  //theme: Reveal.getQueryHash().theme || 'white',
+  // Transition style (e.g., none, fade, slide, convex, concave, zoom)
+  transition: Reveal.getQueryHash().transition || 'slide',
+  // Transition speed (e.g., default, fast, slow)
+  transitionSpeed: 'default',
+  // Transition style for full page slide backgrounds (e.g., none, fade, slide, convex, concave, zoom)
+  backgroundTransition: 'fade',
+  // Number of slides away from the current that are visible
+  viewDistance: 3,
+  // Parallax background image (e.g., "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'")
+  parallaxBackgroundImage: '',
+  // Parallax background size in CSS syntax (e.g., "2100px 900px")
+  parallaxBackgroundSize: '',
+
+  // The "normal" size of the presentation, aspect ratio will be preserved
+  // when the presentation is scaled to fit different resolutions. Can be
+  // specified using percentage units.
+  width: 960,
+  height: 700,
+
+  // Factor of the display size that should remain empty around the content
+  margin: 0.1,
+
+  // Bounds for smallest/largest possible scale to apply to content
+  minScale: 0.2,
+  maxScale: 1.5,
+
+  // Optional libraries used to extend on reveal.js
+  dependencies: [
+      { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+      { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      
+      { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+  ]
+});</script></body></html>
